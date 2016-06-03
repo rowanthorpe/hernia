@@ -1,0 +1,5 @@
+dash | sash | posh | ksh | mksh | zsh | fizsh | bash | tcsh | yash | rc
+git
+ssh-client
+make
+python-markdown || python3-markdown

@@ -1,0 +1,131 @@
+#!/bin/sh
+
+# hernia: The highly opinionated wannabe-love-child of FAI, Ansible & Heroku
+#
+# © Copyright 2014-2016 Rowan Thorpe
+# Any contributions noted in the AUTHORS file.
+#
+# This file is part of hernia.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# emacs ==> -*- mode: sh; eval: (auto-complete-mode 1); -*-
+
+set -e
+
+if ! test 1 = "$SELF_LOGGING"; then
+    test 0 -eq $# || \
+        { printf 'This script should be run with no commandline arguments\n' >&2; exit 1; }
+    test 0 -ne $(id -u) || \
+        { printf 'You must run this as non-root user - sudo is used internally when needed\n' >&2; exit 1; }
+
+    _newest_content="$(git archive --format=tar HEAD:hernia hooks/post-receive | tar -O -x -f -)"
+    test -n "$_newest_content" || \
+        { printf 'Unable to find latest version of myself (post-receive) in the repo\n' >&2; exit 1; }
+    if ! printf '%s\n' "$_newest_content" | diff -q "$0" - >/dev/null 2>&1; then
+        printf '%s\n' "$_newest_content" >"$0"
+        printf 'Updated post-receive hook from repo\n' >&2
+    fi
+    PIPE="$(mktemp -u)"
+    mkfifo "$PIPE"
+    SELF_LOGGING=1 "$0" "$@" 2>&1 | sed -ure 's/\r$//; s/^.*\r([^\r]*)$/\1/' >"$PIPE" 2>&1 &
+    PID=$!
+    tee "/tmp/hernia-$(basename "$0" .sh).log" <"$PIPE" &
+    /bin/sleep 0.1
+    rm -f "$PIPE" # this pipe will still stick around until the child releases it
+    wait $PID
+    exit $?
+fi
+printf 'Started self-logging\n' >&2
+
+# Should probably always be set to 1, but edit it if you want. Only applies to activity outside of each deploy.
+debug=1
+exit_trap='
+    for _thing in "$libfile" "$deployfile" "$runfile" "$varsdir" "$pkgsdir"; do
+        test -z "$_thing" || ! test -e "$_thing" || rm -fr "$_thing"
+    done
+'
+trap "$exit_trap" EXIT
+
+libfile=$(mktemp) && \
+    deployfile=$(mktemp) && \
+    runfile=$(mktemp) && \
+    varsdir=$(mktemp -d) && \
+    pkgsdir=$(mktemp -d) || \
+        { printf 'Failed using mktemp\n' >&2; }
+git archive --format=tar HEAD:hernia lib.sh | tar -O -x -f - >"$libfile" && \
+    git archive --format=tar HEAD:hernia deploy.sh | tar -O -x -f - >"$deployfile" && \
+    git archive --format=tar HEAD:hernia run.sh | tar -O -x -f - >"$runfile" && \
+    git archive --format=tar HEAD:vars | tar --wildcards -C "$varsdir" -x -f - '*.sh' && \
+    git archive --format=tar HEAD:pkgs | tar --wildcards -C "$pkgsdir" -x -f - '*/*.deb' || \
+        { printf 'There was a problem exporting temporary $libfile, $deployfile, $runfile, $varsdir, or $pkgsdir\n' >&2; exit 1; }
+printf 'Temporary $libfile, $deployfile, $runfile, $varsdir, and $pkgsdir exported\n' >&2
+
+scriptpath="$(readlink -e "$0")" && \
+    scriptdir="$(dirname "$scriptpath")" && \
+    test -s "$libfile" && \
+    . "$libfile" || \
+        { printf 'Failed using readlink or dirname, or sourcing lib tempfile "%s"\n' "$libfile"; exit 1; }
+info 'Sourced lib tempfile\n'
+
+source_vars '/root/external_vars.sh' 'branch' || \
+    die 'Failed sourcing external_vars file\n'
+info 'Sourced external_vars file\n'
+
+git symbolic-ref HEAD refs/heads/$branch >/dev/null 2>&1 || \
+    die 'Failed changing git HEAD to "%s"\n' "$branch"
+info 'Changed git HEAD to "%s"\n' "$branch"
+
+to_deploy="$(
+    cd "$varsdir" && \ls -1 *.sh | cut -d- -f2- | cut -d. -f1 | tr '\n' ' ' | sed -e 's/ $//'
+)" || \
+    die 'Failed generating list of things to deploy\n'
+info 'Generated list of things to deploy\n'
+
+sudo -n tee /root/hernia-rollback.log </dev/null
+exit_trap="$exit_trap"'
+if test -e /root/hernia-rollback.log; then
+    sudo -n sed -rne "s/^link://; t PRINT; b; : PRINT; p" /root/hernia-rollback.log | \
+        sort -u | \
+        while IFS= read -r _rollback_line; do
+            sudo -n ln -nfsT "$(basename "$_rollback_line").0" "$_rollback_line"
+        done
+    #sudo -n tac /root/hernia-rollback.log | \
+    #    sed -rne "s/^service://; t PRINT; b; : PRINT; p" | \
+    #    [remove duplicates without re-sorting - not as simple as "sort -u"] | \
+    #    while IFS= read -r _rollback_line; do
+    #        sudo -n service "$_rollback_line" restart (or reload?)
+    #    done
+    sudo -n rm -f /root/hernia-rollback.log
+fi
+'
+trap "$exit_trap" EXIT
+for _this in $to_deploy; do
+    sudo -n sh "$deployfile" "$libfile" "$deployfile" "$runfile" "${varsdir}/"???-"${_this}.sh" "${pkgsdir}/${_this}" "$_this" || \
+        die 'Failed deploying "%s"\n' "$_this"
+    info 'Deployed "%s"\n' "$_this"
+    source_vars "${varsdir}/"???-"${_this}.sh" 'run_after_deploy|post_run_cmds' || \
+        die 'Failed sourcing post-deploy vars for "%s"\n' "$_this"
+    info 'Sourced post-deploy vars for "%s"\n' "$_this"
+    if test 1 -eq $run_after_deploy; then
+        sudo -n sh "$runfile" "$libfile" "$deployfile" "$runfile" "${varsdir}/"???-"${_this}.sh" "${pkgsdir}/${_this}" "$_this" || \
+            die 'Failed doing test-run for "%s"\n' "$_this"
+        info 'Test-run for "%s" completed\n' "$_this"
+    fi
+done
+sudo -n rm -f /root/hernia-rollback.log || \
+    die 'Failed to remove /root/hernia-rollback.log\n'
+info 'Removed /root/hernia-rollback.log\n'
+
+info 'post-receive hook completed\n'

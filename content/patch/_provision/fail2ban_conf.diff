@@ -1,0 +1,134 @@
+--- a/jail.local	1970-01-01 00:02:00.000000000 +0200
++++ b/jail.local	2016-05-19 23:51:50.480597006 +0300
+@@ -0,0 +1,131 @@
++[DEFAULT]
++
++ignoreip = 127.0.0.1/8
++ignorecommand =
++bantime  = 1800
++findtime = 600
++maxretry = 3
++backend = pyinotify
++usedns = warn
++destemail = root
++sendername = Fail2Ban
++sender = fail2ban
++banaction = iptables-multiport
++mta = sendmail
++protocol = tcp
++chain = INPUT
++action_ = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
++action_mw = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
++              %(mta)s-whois[name=%(__name__)s, dest="%(destemail)s", protocol="%(protocol)s", chain="%(chain)s", sendername="%(sendername)s"]
++action_mwl = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
++               %(mta)s-whois-lines[name=%(__name__)s, dest="%(destemail)s", logpath=%(logpath)s, chain="%(chain)s", sendername="%(sendername)s"]
++action = %(action_mwl)s
++
++[ssh]
++
++enabled  = true
++port     = ssh
++filter   = sshd
++logpath  = /var/log/auth.log
++maxretry = 3
++
++[ssh-ddos]
++
++enabled  = true
++port     = ssh
++filter   = sshd-ddos
++logpath  = /var/log/auth.log
++maxretry = 3
++
++# !!! WARNING !!!
++#   Make sure that your loglevel specified in fail2ban.conf/.local
++#   is not at DEBUG level -- which might then cause fail2ban to fall into
++#   an infinite loop constantly feeding itself with non-informative lines
++[recidive]
++
++enabled  = true
++filter   = recidive
++logpath  = /var/log/fail2ban.log
++maxretry = 5
++action   = iptables-allports[name=%(__name__)s]
++           %(mta)s-whois-lines[name=%(__name__)s, dest="%(destemail)s", logpath=%(logpath)s, sendername="%(sendername)s"]
++bantime  = 604800  ; 1 week
++findtime = 86400   ; 1 day
++
++#[nginx-http-auth]
++#
++#enabled = true
++#port    = http,https
++#filter  = nginx-http-auth
++#logpath = /var/log/nginx/error.log
++#
++#[ejabberd-auth]
++#
++#enabled  = true
++#port     = xmpp-client
++#filter   = ejabberd-auth
++#logpath  = /var/log/ejabberd/ejabberd.log
++#protocol = tcp
++#
++#[freeswitch-udp]
++#
++#enabled  = true
++#filter   = freeswitch
++#logpath  = /var/log/messages
++#maxretry = 10
++#action   = iptables-multiport[name=freeswitch-udp, port="5060,5080", protocol=udp]
++#           %(mta)s-whois-lines[name=%(__name__)s, dest="%(destemail)s", logpath=%(logpath)s, sendername="%(sendername)s"]
++#
++#[freeswitch-tcp]
++#
++#enabled  = true
++#filter   = freeswitch
++#logpath  = /var/log/messages
++#maxretry = 10
++#action   = iptables-multiport[name=freeswitch-tcp, port="5060,5061,5080,5081", protocol=tcp]
++#           %(mta)s-whois-lines[name=%(__name__)s, dest="%(destemail)s", logpath=%(logpath)s, sendername="%(sendername)s"]
++#
++#[nagios]
++#
++#enabled  = true
++#filter   = nagios
++#logpath  = /var/log/messages     ; nrpe.cfg may define a different log_facility
++#maxretry = 1
++#action   = iptables[name=Nagios, port=5666, protocol=tcp]
++#           %(mta)s-whois[name=%(__name__)s, dest="%(destemail)s", sender="%(sender)s", sendername="%(sendername)s"]
++#
++#[ssh-route]
++#
++#enabled = false
++#filter = sshd
++#action = route
++#logpath = /var/log/auth.log
++#maxretry = 3
++#
++#[ssh-iptables-ipset4]
++#
++#enabled  = false
++#port     = ssh
++#filter   = sshd
++#banaction = iptables-ipset-proto4
++#logpath  = /var/log/sshd.log
++#maxretry = 3
++#
++#[ssh-iptables-ipset6]
++#
++#enabled  = false
++#port     = ssh
++#filter   = sshd
++#banaction = iptables-ipset-proto6
++#logpath  = /var/log/auth.log
++#maxretry = 3
++#
++#[pam-generic]
++#
++#enabled  = false
++#filter   = pam-generic
++#port     = all
++#banaction = iptables-allports
++#port     = anyport
++#logpath  = /var/log/auth.log
++#maxretry = 6

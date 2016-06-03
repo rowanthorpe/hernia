@@ -1,0 +1,78 @@
+#!/bin/sh
+
+# © Copyright 2014-2016 Rowan Thorpe
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# emacs ==> -*- mode: sh; eval: (auto-complete-mode 1); -*-
+
+# Simple interface/wrapper for ferm and fail2ban, primarily for doing the sane thing for e.g. "restart"
+
+fwadmin_help() {
+    printf 'Usage: fwadmin %s\n' "$my_commands"
+}
+
+fwadmin_stop() {
+    service fail2ban stop
+    service ferm stop
+}
+
+fwadmin_start() {
+    service ferm start
+    service fail2ban start
+}
+
+fwadmin_restart() {
+    fwadmin_stop
+    fwadmin_start
+}
+
+fwadmin_status() {
+    service ferm status
+    service fail2ban status
+}
+
+fwadmin_showtables() {
+    printf '**** v4 iptables settings ****\n\n'
+    iptables -L -v
+    printf '\n**** v6 iptables settings ****\n\n'
+    ip6tables -L -v
+}
+
+fwadmin_showcommands() {
+    printf '**** v4 iptables commands ****\n\n'
+    iptables -S
+    printf '\n**** v6 iptables commands ****\n\n'
+    ip6tables -S
+}
+
+test 0 -eq $(id -u) || { printf 'You must run this as root\n' >&2; exit 1; }
+
+# Get the match-string for the defined functions
+my_commands=$(set | sed -ne 's/^fwadmin_//; t MATCH; b; : MATCH; s/[ (].*$//; p' | tr '\n' '|' | sed -e '$ s/|$//')
+
+# Static backup if the dynamic lookup didn't work for some reason (this list may become stale...)
+my_commands="${my_commands:-help|stop|start|restart|status|showtables|showcommands}"
+
+eval '
+    case "$1" in
+        '$my_commands')
+            eval "fwadmin_$1"
+            ;;
+        *)
+            printf '\''Unknown arg "%s"\n'\'' "$1"
+            exit 1
+            ;;
+    esac
+'

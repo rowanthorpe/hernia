@@ -1,0 +1,120 @@
+# hernia: The highly opinionated wannabe-love-child of FAI, Ansible & Heroku
+#
+# © Copyright 2014-2016 Rowan Thorpe
+# Any contributions noted in the AUTHORS file.
+#
+# This file is part of hernia.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# emacs ==> -*- mode: sh; eval: (auto-complete-mode 1); -*-
+
+# * This uses a very simple one-line-per-var format with no trailing comments
+#   or spaces, for easy grepping and sanitising in shellscript. The assignment
+#   is done with "eval", so be sure to escape/quote whatever needs to not be
+#   expanded. Empty and commented lines are ignored.
+#
+#   Limitation: Pseudo-hash records can't include vertical or horizontal
+#   whitespace (tabs, spaces, newlines, etc), and all but the last pseudo-hash
+#   field in each record can't include the field-delimiter ":". For anything
+#   too complex for such limitations it is better to copy the content as new
+#   files from the "content" dir, or include the content in patches in the
+#   "patches" dir.
+
+#### GENERAL ####
+
+# Dump lots of info to stderr for this deploy (set $debug_global in external_vars.sh
+# to force debug everywhere).
+debug='0'
+
+#### DEPLOY ####
+
+# NB:
+#  * Keep commands below idempotent (with checks for existence, etc) - they will be
+#    eval-ed on every deploy, therefore on every git-push...
+#  * In the pseudo-hashes the target-dir is listed without the runtime-timestamp
+#    (which gets appended).
+
+# Auxiliary debian repo details specific to this deploy.
+repo_pub_key_url='https://XXXX/repo/deb/debian/XXXXX.pub'
+apt_source_line_1='deb http://XXXX/repo/deb/XXXX/ jessie main'
+apt_source_line_2='deb-src http://XXXX/repo/deb/XXXX/ jessie main'
+apt_source_filename='/etc/apt/sources.list.d/XXXX.list'
+
+# Packages to install from the repos:
+#  packages_manual: packages to explicitly install (including any "suggested", which
+#                   are not auto-installed).
+#  packages_auto: "recommended" packages you wish to install but keep as "auto".
+packages_manual='XXXX'
+packages_auto='XXXX'
+
+# Packages to prevent auto-starting services for during install.
+packages_prevent_service_autostart='XXXX'
+
+# Pseudo-hash of post-install service operations (leading ! on operation allows
+# softfail & continue). Can be XX:reload, XX:restart, XX:stop, XX:start.
+services_post_install='XXXX:!XXXX'
+
+# Pseudo-hash of post-deploy service operations (leading ! on operation allows
+# softfail & continue). Can be XX:reload, XX:restart, XX:stop, XX:start.
+services_post_deploy='XXXX'
+
+# Pseudo-hash of:
+#  - content-type ('new'/'add'/'patch')
+#  - content-name
+#  - from-string
+#  - to-string
+# for simple string-replacements using "sed" (don't sed-rhs-escape the to-string, it
+# is done internally, and the from-string should be simple enough to not need
+# escaping).
+replace_hash='XXXX:XXXX:__XXXX__:XXXX'
+
+# Pseudo-hash of target-dir -> recursive chmod-arg -> recursive chown-arg
+perms_hash='XXXX:XXXX:XXXX'
+
+# Pseudo-hash of source-dir -> target-dir for adding custom files to "content" dir.
+add_content_hash='XXXX:XXXX'
+
+# Pseudo-hash of source-dir -> target-dir for creating empty "content" dir with custom files.
+new_content_hash='XXXX:XXXX'
+
+# Pseudo-hash of source-patch (without trailing .diff) -> target-dir for patches
+# under "patches" dir.
+patch_content_hash='XXXX:XXXX'
+
+# Miscellaneous pre-deploy commands to be eval-ed.
+pre_deploy_cmds='XXXX'
+
+# Miscellaneous post-deploy commands to be eval-ed.
+post_deploy_cmds='XXXX'
+
+# Previous timestamped directories to retain on each iteration (empty string means don't trim any)
+past_timestamped_dirs_to_keep='3'
+
+#### RUN ####
+
+# Test run daemon after each deployment.
+run_after_deploy='1'
+
+# "ulimit -s" value for post-deployment test-run.
+ulimit_s_val='1024'
+
+# extra commands to execute after the test-run.
+post_run_cmds='XXXX'
+
+# Name of the daemon executable.
+daemon_name='XXXX'
+
+# Opts to run daemon with.
+daemon_opts='-XXXX -XXXX'

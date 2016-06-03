@@ -1,0 +1,123 @@
+;==========================================================
+; Commented lines are suggestions, to be implemented later
+;==========================================================
+
+;===================================================================================================
+;;$ORIGIN 2.5.5.8.0.7.7.1.1.2.0.3.e164.arpa.  (...bah)
+;$ORIGIN  2.5.5.8.0.7.7.1.1.2.0.3.e164.org.
+;;@ IN NAPTR 10 10 "u" "E2U+H323"                                    "!^.*$!h323:302117708552@__BAREDOMAIN__!" .
+;;@ IN NAPTR 20 10 "u" "E2U+PSTN:SIP+SIP+PRES+IM+SMS:MAILTO+SMS:TEL" "!^.*$!sip:302117708552@__BAREDOMAIN__!" . ;; target could be sips: later
+;;@ IN NAPTR 30 10 "u" "E2U+IAX2"                                    "!^.*$!iax2:302117708552@__BAREDOMAIN__!" .
+;;@ IN NAPTR 30 20 "u" "E2U+IAX"                                     "!^.*$!iax:302117708552@__BAREDOMAIN__!" .
+;;@ IN NAPTR 40 10 "u" "E2U+XMPPS"                                   "!^.*$!xmpps:302117708552@__BAREDOMAIN__!" .
+;;@ IN NAPTR 40 20 "u" "E2U+XMPP"                                    "!^.*$!xmpp:302117708552@__BAREDOMAIN__!" .
+;;@ IN NAPTR 50 10 "u" "E2U+FAX:TEL+VOICE:TEL+SMS:TEL"               "!^(.*)$!tel:\\1!" .
+;;@ IN NAPTR 60 10 "u" "E2U+IM"                                      "!^.*$!im:302117708552@__BAREDOMAIN__!" .
+;;@ IN NAPTR 60 10 "u" "E2U+MSG+MMS:MAILTO+SMS:MAILTO"               "!^.*$!mailto:302117708552@__BAREDOMAIN__!" .
+;@  IN NAPTR 70 10 "u" "E2U+WEB:HTTP"                                "!^.*$!https://www.__BAREDOMAIN__!" .
+;===================================================================================================
+
+;===================================================================================================
+; Local zone file. Semi-colon-commented lines are suggested, to be implemented.
+;===================================================================================================
+$ORIGIN __BAREDOMAIN__.
+$TTL 14400
+
+@                    IN SOA   __AUTH__. __CONTACT__. 2016051400 14400 1200 172800 14400
+@                    IN RP    __CONTACT__. rp
+rp                   IN TXT   "__BAREDOMAIN__ hostmaster"
+
+@                    IN NS    __NS1__.
+@                    IN NS    __NS2__.
+;; local NS if/when we want to delegate DNS locally (and is HA)
+;@                   IN NS    db01
+;@                   IN NS    db02
+
+@                    IN A     __IPV4__
+@                    IN AAAA  __IPV6__
+;; simpler if node01 is CNAME->@ when only one node, but chaining CNAMEs is a no-no
+node01               IN A     __IPV4__
+node01               IN AAAA  __IPV6__
+;node02              IN A     x.x.x.x
+;node02              IN AAAA  x::x
+;; clearer if mail is CNAME->node01 too, but it must be A->.. & AAAA->.. as the MX RR target can't be a CNAME
+mail                 IN A     __IPV4__
+mail                 IN AAAA  __IPV6__
+
+@                    IN MX    1 mail
+;; if/when non-local mail listener(s)
+;@                   IN MX    1 mail01
+;@                   IN MX    1 mail02
+
+@                    IN TXT   "v=spf1 ip4:__IPV4__ ip6:__IPV6__ -all"
+mail                 IN TXT   "v=spf1 ip4:__IPV4__ ip6:__IPV6__ -all"
+node01               IN TXT   "v=spf1 ip4:__IPV4__ ip6:__IPV6__ -all"
+
+@                    IN NAPTR 0 0 "s" "HTTPS+D2T" "" _https._tcp
+@                    IN NAPTR 0 1 "s" "HTTP+D2T"  "" _http._tcp
+;@                   IN NAPTR 0 0 "s" "FTP+D2T"   "" _ftp._tcp
+;@                   IN NAPTR 0 0 "s" "DNS+D2U"   "" _dns._udp
+;@                   IN NAPTR 0 1 "s" "DNS+D2T"   "" _dns._tcp
+;@                   IN NAPTR 0 0 "s" "SMTPS+D2T" "" _smtps._tcp
+;@                   IN NAPTR 0 1 "s" "SMTP+D2T"  "" _smtp._tcp
+;@                   IN NAPTR 0 0 "s" "POP3S+D2T" "" _pop3s._tcp
+;@                   IN NAPTR 0 1 "s" "POP3+D2T"  "" _pop3._tcp
+;@                   IN NAPTR 0 0 "s" "H323+D2T"  "" _h323._tcp
+;@                   IN NAPTR 0 1 "s" "H323+D2U"  "" _h323._udp
+;@                   IN NAPTR 1 0 "s" "SIPS+D2T"  "" _sips._tcp
+;@                   IN NAPTR 1 1 "s" "SIP+D2T"   "" _sip._tcp
+;@                   IN NAPTR 1 2 "s" "SIP+D2U"   "" _sip._udp
+;@                   IN NAPTR 2 0 "s" "IAX2+D2U"  "" _iax2._udp
+;@                   IN NAPTR 2 1 "s" "IAX2+D2T"  "" _iax2._tcp
+;@                   IN NAPTR 3 0 "s" "IAX+D2U"   "" _iax._udp
+;@                   IN NAPTR 3 1 "s" "IAX+D2T"   "" _iax._tcp
+;@                   IN NAPTR 4 0 "s" "XMPPS+D2T" "" _xmpps-server._tcp
+;@                   IN NAPTR 4 1 "s" "XMPP+D2T"  "" _xmpp-server._tcp
+
+;_dns._tcp           IN SRV   0 0 53   db
+;_dns._udp           IN SRV   0 1 53   db
+_https._tcp          IN SRV   0 0 443  www
+_http._tcp           IN SRV   0 1 80   www
+;_ftp._tcp           IN SRV   0 0 21   www
+
+;_submission._tcp    IN SRV   0 0 587  mail
+;_smtps._tcp         IN SRV   0 0 465  mail
+;_smtp._tcp          IN SRV   0 1 25   mail
+;_pop3s._tcp         IN SRV   0 0 995  mail
+;_pop3._tcp          IN SRV   0 1 110  mail
+;_imaps._tcp         IN SRV   0 0 993  mail
+;_imap._tcp          IN SRV   0 1 143  mail
+
+;_h323._tcp          IN SRV   0 0 1720 voip
+;_h323._udp          IN SRV   0 1 1720 voip
+;_sips._tcp          IN SRV   1 0 5061 voip
+;_sip._tcp           IN SRV   1 1 5060 voip
+;_sip._udp           IN SRV   1 2 5060 voip
+;_iax2._tcp          IN SRV   2 0 4569 voip
+;_iax2._udp          IN SRV   2 1 4569 voip
+;_iax._tcp           IN SRV   3 0 4569 voip
+;_iax._udp           IN SRV   3 1 4569 voip
+;;_xmpps-server._tcp IN SRV   4 0 5269 voip ;; this is still experimental, XEP-0368, left as note-to-self for later
+;_xmpp-server._tcp   IN SRV   4 0 5269 voip
+;;_xmpps-client._tcp IN SRV   0 0 5222 voip ;; this is still experimental, XEP-0368, left as note-to-self for later
+;_xmpp-client._tcp   IN SRV   0 0 5222 voip
+
+;_stuns._tcp         IN SRV   0 0 5349 voip
+;_stun._tcp          IN SRV   0 1 3478 voip
+;_stun._udp          IN SRV   0 2 3478 voip
+;_turns._tcp         IN SRV   1 0 5349 voip
+;_turn._tcp          IN SRV   1 1 3478 voip
+;_turn._udp          IN SRV   1 2 3478 voip
+
+;; Everything points to node01 for now, but that is easily changed when necessary
+;; Presently, I'm funnelling everything through a single nginx as director anyway,
+;; but different domain-names still help for clarity. It is possible to have HA
+;; nginxes by round-robin DNS (e.g. "voip -> CNAME -> node01",
+;; "voip -> CNAME -> node02", ... & have identical nginx on node01, node02,
+;; node03...). Remember when using HA apps, and/or HA nginx directors, session
+;; persistence should be handled with shared DB (memcached, postgres), to cope
+;; with the round-robin, and also failover situations.
+voip                 IN CNAME node01
+www                  IN CNAME node01
+staging              IN CNAME node01
+db                   IN CNAME node01

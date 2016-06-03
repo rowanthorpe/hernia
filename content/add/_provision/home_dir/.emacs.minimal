@@ -1,0 +1,63 @@
+;;
+; Run this with emacs --quick --load ~/.emacs.minimal
+; (I have setup /usr/local/bin/minemacs to do this ^^)
+;   or
+; echo "(load-file \"${HOME}/.emacs.minimal\")" > ~/.emacs
+;   or both
+;;
+
+;; Copied (with minimal changes)
+;; from https://gist.github.com/gnarmis/d8ce3d817bb16a65a0b7
+
+;; cutoff for word wrap
+(setq-default fill-column 79)
+
+;; F12 toggles auto-fill mode
+(global-set-key [f12] 'auto-fill-mode)
+
+;; C-- keybinding for undo (removes the shift)
+(global-set-key [(control -)] 'undo)
+
+;; turn on pending delete (when a region
+;; is selected, typing replaces it)
+(delete-selection-mode t)
+
+;; when on a tab, make the cursor the tab length
+(setq-default x-stretch-cursor t)
+
+;; avoid garbage collection (default is only 400k)
+(setq-default gc-cons-threshold 4000000)
+
+;; twiddle miscellaneous customization options
+(custom-set-variables
+  '(sentence-end-double-space nil)
+  '(truncate-partial-width-windows nil)
+  '(line-number-mode t)
+  '(column-number-mode t)
+  '(query-user-mail-address nil)
+  '(visible-bell t))
+
+;; prevent creation of backup files. I'd rather manually handle that.
+(setq make-backup-files nil)
+
+;; set indentation to 2
+(setq standard-indent 2)
+
+;; set newline as not required for every file's last line
+(setq require-final-newline nil)
+
+;; don't ask me to type out "yes" and "no"
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+;; Prevent the cursor from blinking
+(blink-cursor-mode 0)
+
+;; Don't use messages that you don't read
+(setq initial-scratch-message "")
+(setq inhibit-startup-message t)
+
+;; key binding for fill-region
+(global-set-key (kbd "C-c f") 'fill-region)
+
+;; disable color nonsense
+(setq-default global-font-lock-mode nil)

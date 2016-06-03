@@ -1,0 +1,32 @@
+# hernia: The highly opinionated wannabe-love-child of FAI, Ansible & Heroku
+#
+# © Copyright 2014-2016 Rowan Thorpe
+# Any contributions noted in the AUTHORS file.
+#
+# This file is part of hernia.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# emacs ==> -*- mode: sh; eval: (auto-complete-mode 1); -*-
+
+# * This uses a very simple one-line-per-var format with no trailing comments
+#   or spaces, for easy grepping and sanitising in shellscript. The assignment
+#   is done with "eval", so be sure to escape/quote whatever needs to not be
+#   expanded. Empty and commented lines are ignored. Limitation: values can't
+#   include vertical or horizontal whitespace (tabs, spaces, newlines, etc).
+
+# when this equals 1 it forces debugging everywhere despite the setting of $debug in the vars-files
+debug_global=1
+
+# $services_password, $repo, $branch, $bare_domain, $server_aliases, $main_alias, $ns_1, $public_ipv4_address will be auto-added by provision.sh

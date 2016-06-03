@@ -1,0 +1,6 @@
+#!/bin/sh
+if test -e ~/.emacs.minimal; then
+    exec emacs --quick --load ~/.emacs.minimal "$@"
+else
+    exec emacs --quick "$@"
+fi

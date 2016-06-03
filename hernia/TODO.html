@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html><head><title>README</title></head><body>
+<h1>TODO</h1>
+<h2>QUICK</h2>
+<h3>Add optional handling of args by receive-hook for specific re-deploys</h3>
+<p>Add functionality so when the git receive-hook is run directly with args it only
+iterates re-deploying those steps, rather than iterating all (default).</p>
+<h3>Use binary-friendly way to copy new/added content (for images, etc)</h3>
+<p>Presently this just uses printf of escaped content within ssh-and-sudo. Obviously
+shell-strings don't handle embedded nulls (\0) so this will break for files with
+nulls. scp either happens as user or as root, but we allow ssh/scp only as user,
+with sudo to root. scp-ing files requiring root involves:</p>
+<ul>
+<li>copy file to tempfile as user in user-homedir</li>
+<li>ssh and sudo to root</li>
+<li>mv tempfile to intended location</li>
+<li>chown it to root (or other)</li>
+</ul>
+<h3>Check for other manual system tweaks needed in provision</h3>
+<p>In provision.sh where the hostname, fqdn, etc are updated, see if any other
+file updates are worth making (particularly thinking of systemd stuff). I will
+check my earlier devops code-snippets for reference (CentOS work in puppet, etc).</p>
+<h3>Get country code by prompt, not from the existing sources.list</h3>
+<p>At the moment the country code is grokked from the existing sources.list which
+is a bit unreliable. It would be better to prompt for it (with local country as
+default), then update /etc/apt/sources.list, /etc/locale.gen, etc with that.</p>
+<h3>In run.sh add run_dir, log_dir, daemon_user, daemon_group to vars.sh</h3>
+<p>At the moment I just (ab)use daemon_name for these in the script, but that
+only happens to work for now. It is too restrictive, they should be
+configurable instead.</p>
+<h3>Get meaningful default LOCALE_GEN and TZ_DATA values (from local locale?)</h3>
+<p>At the moment the defaults for those values are hard-coded. Get reliable
+defaults from the local environment instead.</p>
+<h3>Auto-generate content-hashes</h3>
+<p>Auto-generate things like patch_content_hash, new_content_hash, etc based on
+files in the corresponding source directories. Then they don't need to be
+specified in the vars files. replace_hash can't be auto-generated but could
+be sanity-checked (if file matches <code>\&lt;__[A-Z]\+__\&gt;</code> without corresponding entry
+in hash...).</p>
+<h3>Make some fields in pseudo-hashes comma-separated multi-fields</h3>
+<p>I already did this before in some places, but got rid of it for the sake of
+simplicity as it wasn't used much. Re-adding this (to wherever makes sense)
+would allow compacting down some vars files by sub-iterating the fields instead
+of repetitive config entries.</p>
+<h2>HIGH PRIORITY</h2>
+<h2>MEDIUM PRIORITY</h2>
+<h3>Use quote_wrap everywhere</h3>
+<p>Use quote_wrap &amp; quote_wrap_p eveywhere instead of arbitrary single-quoting in
+some places. Would be better to rename them to qw and qwp to reduce verbosity.</p>
+<h3>Use quilt to maintain patch-content directory</h3>
+<p>Update format of patch-content directory to support using quilt for maintenance
+rather than doing it manually like I do at the moment.</p>
+<h3>Add service restarts to post-receive rollback exit trap</h3>
+<p>This isn't as easy as the config-file symlink resets, order matters so
+"sort -u" won't work. They should happen <em>after</em> the symlinking.</p>
+<h2>LOW PRIORITY</h2>
+<h3>Add preseed directory to base of repo</h3>
+<p>To avoid hardcoding preseed actions, add this with debconf-set-selections
+content, in files named after the related package. Same idea as the pkgs
+directory: e.g.</p>
+<blockquote>
+<pre><code>preseed/_provision/exim4-config:
+
+exim4-config  exim4/mailname  string  example.com
+exim4-config  exim4/dc_relay_domains  string
+...
+</code></pre>
+</blockquote>
+<h3>Make sip provider settings more configurable</h3>
+<p>At the moment there are a few remaining presumptions in the freeswitch conf
+about the sip provider settings (e.g. the username is set to the same as the
+did-number, etc). It would be a quick task to abstract more of these out into
+vars.sh, to be useful for providers other than ours.</p>
+<h3>Prevent hibernation of local machine during run</h3>
+<p>memlockd is used to prevent swapping private data to disk, both locally and
+remotely. There is still a risk of private data hitting disk if the local
+machine is hibernated during a run. I haven't worked out a simple way to
+forcibly prevent hibernation yet, but that would probably only ever be an
+issue locally, and generally only on an effectively "single-user" laptop, so
+it's probably OK to treat that as very low priority.</p>
+<h3>arp and eb stuff in ferm config</h3>
+<p>Investigate if worth configuring those at the moment.</p>
+</body></html>
