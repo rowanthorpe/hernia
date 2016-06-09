@@ -4,11 +4,6 @@ TODO
 QUICK
 -----
 
-### Add optional handling of args by receive-hook for specific re-deploys
-
-Add functionality so when the git receive-hook is run directly with args it only
-iterates re-deploying those steps, rather than iterating all (default).
-
 ### Use binary-friendly way to copy new/added content (for images, etc)
 
 Presently this just uses printf of escaped content within ssh-and-sudo. Obviously
@@ -20,6 +15,11 @@ with sudo to root. scp-ing files requiring root involves:
 * ssh and sudo to root
 * mv tempfile to intended location
 * chown it to root (or other)
+
+### Add optional handling of args by receive-hook for specific re-deploys
+
+Add functionality so when the git receive-hook is run directly with args it only
+iterates re-deploying those steps, rather than iterating all (default).
 
 ### Check for other manual system tweaks needed in provision
 

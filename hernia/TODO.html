@@ -2,9 +2,6 @@
 <html><head><title>README</title></head><body>
 <h1>TODO</h1>
 <h2>QUICK</h2>
-<h3>Add optional handling of args by receive-hook for specific re-deploys</h3>
-<p>Add functionality so when the git receive-hook is run directly with args it only
-iterates re-deploying those steps, rather than iterating all (default).</p>
 <h3>Use binary-friendly way to copy new/added content (for images, etc)</h3>
 <p>Presently this just uses printf of escaped content within ssh-and-sudo. Obviously
 shell-strings don't handle embedded nulls (\0) so this will break for files with
@@ -16,6 +13,9 @@ with sudo to root. scp-ing files requiring root involves:</p>
 <li>mv tempfile to intended location</li>
 <li>chown it to root (or other)</li>
 </ul>
+<h3>Add optional handling of args by receive-hook for specific re-deploys</h3>
+<p>Add functionality so when the git receive-hook is run directly with args it only
+iterates re-deploying those steps, rather than iterating all (default).</p>
 <h3>Check for other manual system tweaks needed in provision</h3>
 <p>In provision.sh where the hostname, fqdn, etc are updated, see if any other
 file updates are worth making (particularly thinking of systemd stuff). I will
