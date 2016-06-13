@@ -1,0 +1,4 @@
+Explanation: Necessary backported deps for certbot in jessie
+Package: nginx-extras nginx-common python-cffi python-cffi-backend python-cryptography python-idna python-ipaddress python-openssl python-pyasn1
+Pin: release n=jessie-backports
+Pin-Priority: 990

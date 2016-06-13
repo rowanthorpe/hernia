@@ -1,0 +1,4 @@
+Explanation: Necessary backported deps for various python3 libraries in jessie
+Package: alembic python3-six
+Pin: release n=jessie-backports
+Pin-Priority: 990
