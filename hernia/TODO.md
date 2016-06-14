@@ -89,11 +89,11 @@ To avoid hardcoding preseed actions, add this with debconf-set-selections
 content, in files named after the related package. Same idea as the pkgs
 directory: e.g.
 
->     preseed/_provision/exim4-config:
->     
->     exim4-config	exim4/mailname	string	example.com
->     exim4-config	exim4/dc_relay_domains	string
->     ...
+    preseed/_provision/exim4-config:
+    
+    exim4-config	exim4/mailname	string	example.com
+    exim4-config	exim4/dc_relay_domains	string
+    ...
 
 ### Make sip provider settings more configurable
 

@@ -58,14 +58,12 @@ rather than doing it manually like I do at the moment.</p>
 <p>To avoid hardcoding preseed actions, add this with debconf-set-selections
 content, in files named after the related package. Same idea as the pkgs
 directory: e.g.</p>
-<blockquote>
 <pre><code>preseed/_provision/exim4-config:
 
-exim4-config  exim4/mailname  string  example.com
-exim4-config  exim4/dc_relay_domains  string
+exim4-config    exim4/mailname  string  example.com
+exim4-config    exim4/dc_relay_domains  string
 ...
 </code></pre>
-</blockquote>
 <h3>Make sip provider settings more configurable</h3>
 <p>At the moment there are a few remaining presumptions in the freeswitch conf
 about the sip provider settings (e.g. the username is set to the same as the

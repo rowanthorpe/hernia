@@ -20,14 +20,12 @@ within a git receive-hook (which is setup during provision, along with the git r
    as root manually (enter new password twice when prompted). The edit to
    PermitRootLogin is necessary on a vanilla Debian install as the default setting is
    "without-password":</p>
-<blockquote>
 <pre><code>passwd
 apt-get --yes install ssh
 sed -i -re 's/^(#*[ \t]*)?PermitRootLogin[ \t].*$/PermitRootLogin yes/' \
     /etc/ssh/sshd_config
 service ssh restart
 </code></pre>
-</blockquote>
 </li>
 <li>
 <p>Once any of the following are setup the provision script will do the rest:
@@ -62,7 +60,7 @@ service ssh restart
 <p>All steps of provision &amp; deployment should be idempotent with adequate rollback
    for failures, so you should be able to just rerun after a failed or interrupted
    provision or deploy, and/or after completion. Re-deployment will auto-trigger
-   whenver a git push is done to the server. This will of course overwrite any
+   whenever a git push is done to the server. This will of course overwrite any
    manual edits made in the hernia-controlled config-dirs, so don't do that.</p>
 </li>
 <li>
@@ -76,27 +74,21 @@ service ssh restart
 <h2>Directory layout of the deployed files</h2>
 <p>For each config dir updated by Hernia during deployment (by "new", "add" or
 "patch") the layout on the filesystem will be:</p>
-<blockquote>
 <pre><code>"dir"                    = symlink -&gt; "dir.[LATEST_TIMESTAMP]"
 "dir.[LATEST_TIMESTAMP]" = directory
 "dir.0"                  = pre-deployment directory
 </code></pre>
-</blockquote>
 <p>If the directory was also updated during provisioning, then:</p>
-<blockquote>
 <pre><code>"dir.-1"                 = pre-provisioning directory
 </code></pre>
-</blockquote>
 <p>The timestamp in the directory-names will be the unix-time of when the
 deployment was made (not of the latest commit). The symlinks are to allow
 easy atomic deploy and manual rollback (by changing the symlink) if something
 goes wrong when using the new configuration. For manual rollback two useful
 commands are:</p>
-<blockquote>
 <pre><code>ls -ltd "$dir".*
 ln -nfsT "$(basename "$dir").[TIMESTAMP_YOU_WANT]" "$dir"
 </code></pre>
-</blockquote>
 <h2>How each tool works</h2>
 <ul>
 <li>

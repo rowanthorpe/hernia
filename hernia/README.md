@@ -22,11 +22,12 @@ To provision a server
    as root manually (enter new password twice when prompted). The edit to
    PermitRootLogin is necessary on a vanilla Debian install as the default setting is
    "without-password":
-   >     passwd
-   >     apt-get --yes install ssh
-   >     sed -i -re 's/^(#*[ \t]*)?PermitRootLogin[ \t].*$/PermitRootLogin yes/' \
-   >         /etc/ssh/sshd_config
-   >     service ssh restart
+
+        passwd
+        apt-get --yes install ssh
+        sed -i -re 's/^(#*[ \t]*)?PermitRootLogin[ \t].*$/PermitRootLogin yes/' \
+            /etc/ssh/sshd_config
+        service ssh restart
 
  * Once any of the following are setup the provision script will do the rest:
    root-password-ssh, root-key-ssh, $USER_NAME-password-ssh, or $USER_NAME-key-ssh.
@@ -55,7 +56,7 @@ To provision a server
  * All steps of provision & deployment should be idempotent with adequate rollback
    for failures, so you should be able to just rerun after a failed or interrupted
    provision or deploy, and/or after completion. Re-deployment will auto-trigger
-   whenver a git push is done to the server. This will of course overwrite any
+   whenever a git push is done to the server. This will of course overwrite any
    manual edits made in the hernia-controlled config-dirs, so don't do that.
 
  * Be warned that provisioning is designed to be run on a new server, or to
@@ -70,13 +71,13 @@ Directory layout of the deployed files
 For each config dir updated by Hernia during deployment (by "new", "add" or
 "patch") the layout on the filesystem will be:
 
->     "dir"                    = symlink -> "dir.[LATEST_TIMESTAMP]"
->     "dir.[LATEST_TIMESTAMP]" = directory
->     "dir.0"                  = pre-deployment directory
+    "dir"                    = symlink -> "dir.[LATEST_TIMESTAMP]"
+    "dir.[LATEST_TIMESTAMP]" = directory
+    "dir.0"                  = pre-deployment directory
 
 If the directory was also updated during provisioning, then:
 
->     "dir.-1"                 = pre-provisioning directory
+    "dir.-1"                 = pre-provisioning directory
 
 The timestamp in the directory-names will be the unix-time of when the
 deployment was made (not of the latest commit). The symlinks are to allow
@@ -84,8 +85,8 @@ easy atomic deploy and manual rollback (by changing the symlink) if something
 goes wrong when using the new configuration. For manual rollback two useful
 commands are:
 
->     ls -ltd "$dir".*
->     ln -nfsT "$(basename "$dir").[TIMESTAMP_YOU_WANT]" "$dir"
+    ls -ltd "$dir".*
+    ln -nfsT "$(basename "$dir").[TIMESTAMP_YOU_WANT]" "$dir"
 
 How each tool works
 -------------------
