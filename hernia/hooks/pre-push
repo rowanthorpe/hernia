@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Note to self: use --no-verify to bypass this hook
+
+eval "$(grep '^git_protected_branches_regex=' external_vars.sh 2>/dev/null || :)"
+if test -n "$git_protected_branches_regex"; then
+    do_exit(){
+        printf '%s\n' "$policy"
+        exit 1
+    }
+    will_remove_protected_branch() {
+        printf '[ \t]:(%s)\>' "$git_protected_branches_regex"
+    }
+
+    current_branch="$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')"
+    push_command="$(ps -ocommand= -p $PPID)"
+    is_destructive_regex='\<force\>|\<delete\>|\<-f\>|\<--force\>'
+
+    policy="[Policy] Never force-push this protected branch! (Prevented with pre-push hook.)"
+    if printf '%s\n' "$push_command" | grep -E -q "$is_destructive_regex"; then
+        ! printf '%s\n' "$current_branch" | grep -E -q "^${git_protected_branches_regex}$" && \
+            ! printf '%s\n' "$push_command" | grep -E -q "$git_protected_branches_regex" || \
+                do_exit
+    fi
+
+    policy="[Policy] Never delete this protected branch! (Prevented with pre-push hook.)"
+    ! printf '%s\n' "$push_command" | grep -E -q "$(will_remove_protected_branch)" || \
+        do_exit
+
+    unset do_exit
+fi

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+exec 1>&2
+set -e
+_retval=0
+_output="$(git exec make 2>&1)" || _retval=$?
+printf '%s\n' "$_output"
+ test 0 -eq $_retval && ! printf '%s\n' "$_output" | grep -q ', add it for commit$'

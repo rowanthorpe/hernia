@@ -29,4 +29,7 @@
 # when this equals 1 it forces debugging everywhere despite the setting of $debug in the vars-files
 debug_global=1
 
+# this regex should be of the form 'a|b|c|d'
+git_protected_branches_regex='master'
+
 # $services_password, $repo, $branch, $bare_domain, $server_aliases, $main_alias, $ns_1, $public_ipv4_address will be auto-added by provision.sh

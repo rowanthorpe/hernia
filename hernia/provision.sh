@@ -390,19 +390,14 @@ fi || \
     die 'Failed to ensure "exec" git-alias\n'
 info 'Ensured "exec" git-alias\n'
 
-{
-    ! test -s .git/hooks/pre-commit || \
-        mv -fT .git/hooks/pre-commit .git/hooks/pre-commit.bak
-} && \
-    printf '#!/bin/sh
-exec 1>&2
-_output="$(git exec make 2>&1)"
-printf %%s\\\\n "$_output"
-! printf %%s\\\\n "$_output" | grep -q '\'', add it for commit$'\''
-' >.git/hooks/pre-commit && \
-    chmod +x .git/hooks/pre-commit || \
-        die 'Failed to update local pre-commit hook\n'
-info 'Updated local pre-commit hook\n'
+for _hookname in pre-commit pre-push; do
+    if ! test -s .git/hooks/$_hookname || ! test ../../hernia/hooks/$_hookname = "$(readlink -e .git/hooks/$_hookname 2>/dev/null || :)"; then
+        mv -fT .git/hooks/$_hookname .git/hooks/${_hookname}.bak 2>/dev/null || :
+        ln -nfsT ../../hernia/hooks/$_hookname .git/hooks/$_hookname
+    fi || \
+        die 'Failed to update local %s hook\n' "$_hookname"
+    info 'Updated local %s hook\n' "$_hookname"
+done
 
 git config push.default simple && \
     if git remote 2>/dev/null | grep -q '^vm$'; then
